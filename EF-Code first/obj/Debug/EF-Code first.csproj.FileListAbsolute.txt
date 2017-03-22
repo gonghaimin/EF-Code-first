@@ -1,0 +1,10 @@
+D:\EF-Code first\EF-Code first\bin\Debug\EF-Code first.exe.config
+D:\EF-Code first\EF-Code first\bin\Debug\EF-Code first.exe
+D:\EF-Code first\EF-Code first\bin\Debug\EF-Code first.pdb
+D:\EF-Code first\EF-Code first\bin\Debug\EntityFramework.dll
+D:\EF-Code first\EF-Code first\bin\Debug\EntityFramework.SqlServer.dll
+D:\EF-Code first\EF-Code first\bin\Debug\EntityFramework.xml
+D:\EF-Code first\EF-Code first\bin\Debug\EntityFramework.SqlServer.xml
+D:\EF-Code first\EF-Code first\obj\Debug\EF-Code first.csprojResolveAssemblyReference.cache
+D:\EF-Code first\EF-Code first\obj\Debug\EF-Code first.exe
+D:\EF-Code first\EF-Code first\obj\Debug\EF-Code first.pdb

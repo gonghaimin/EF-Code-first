@@ -8,3 +8,6 @@ D:\EF-Code first\EF-Code first\bin\Debug\EntityFramework.SqlServer.xml
 D:\EF-Code first\EF-Code first\obj\Debug\EF-Code first.csprojResolveAssemblyReference.cache
 D:\EF-Code first\EF-Code first\obj\Debug\EF-Code first.exe
 D:\EF-Code first\EF-Code first\obj\Debug\EF-Code first.pdb
+D:\GHM\EF-Code first\EF-Code first\bin\Debug\EF-Code first.exe.config
+D:\GHM\EF-Code first\EF-Code first\obj\Debug\EF-Code first.exe
+D:\GHM\EF-Code first\EF-Code first\obj\Debug\EF-Code first.pdb

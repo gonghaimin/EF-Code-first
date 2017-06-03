@@ -11,6 +11,7 @@ using System.Data.Entity.Infrastructure;
 using System.Data.SqlClient;
 using System.Data;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
 namespace EF_Code_first
 {
@@ -18,6 +19,14 @@ namespace EF_Code_first
     {
         static void Main(string[] args)
         {
+            using (var tt=new Model1())
+            {
+                MyEntity my = new EF_Code_first.MyEntity() { Name = "test" };
+                tt.MyEntities.Add(my);
+                //tt.SaveChanges();
+                var aaaaa = tt.MyEntities.ToList();
+                var aaaa1a = tt.MyEntities.ToList();
+            }
             var d = DateTime.Now.Date.ToString("yyyyMM");
             var destination = new Destination
             {
@@ -25,10 +34,13 @@ namespace EF_Code_first
                 Description = "EcoTourism at its best in exquisite Bali",
                 Name = "Bali"
             };
-            using (var context = new Context())
+            using (var context = new testContext())
             {
+                context.Destinations.Add(destination);
+                context.SaveChanges();
+                Console.ReadKey();
                 var aa = context.Destinations.Where(a => a.DestinationId == 1);
-
+             
 
                 ///使用EntityFramework.Extended插件
                 //更新
@@ -62,70 +74,71 @@ namespace EF_Code_first
 
                 context.SaveChanges();
 
-
+                ////如果实体类有变化，那么就重新生成一下数据库(DropCreateDatabaseIfModelChanges)
+                Database.SetInitializer(new DropCreateDatabaseIfModelChanges<testContext>());
             }
             Console.WriteLine("OK");
 
         }
 
         //使用SqlBulkCopy来批量插入数据，这样很大地提高性能
-        public static void BulkInsert<T>(SqlConnection conn, string tableName, IList<T> list)
-        {
-            using (var bulkCopy = new SqlBulkCopy(conn))
-            {
-                bulkCopy.BatchSize = list.Count;
-                bulkCopy.DestinationTableName = tableName;
+        //public static void BulkInsert<T>(SqlConnection conn, string tableName, IList<T> list)
+        //{
+        //    using (var bulkCopy = new SqlBulkCopy(conn))
+        //    {
+        //        bulkCopy.BatchSize = list.Count;
+        //        bulkCopy.DestinationTableName = tableName;
 
-                var table = new DataTable();
-                var props = TypeDescriptor.GetProperties(typeof(T), new Attribute[] { new DatabaseTableColumnAttribute() })
-                    //Dirty hack to make sure we only have system data types 
-                    //i.e. filter out the relationships/collections
-                    .Cast<PropertyDescriptor>()
-                    .Where(propertyInfo => propertyInfo.PropertyType.Namespace.Equals("System"))
-                    .ToArray();
+        //        var table = new DataTable();
+        //        var props = TypeDescriptor.GetProperties(typeof(T), new Attribute[] { new DatabaseTableColumnAttribute() })
+        //            //Dirty hack to make sure we only have system data types 
+        //            //i.e. filter out the relationships/collections
+        //            .Cast<PropertyDescriptor>()
+        //            .Where(propertyInfo => propertyInfo.PropertyType.Namespace.Equals("System"))
+        //            .ToArray();
 
-                foreach (var propertyInfo in props)
-                {
-                    bulkCopy.ColumnMappings.Add(propertyInfo.Name, propertyInfo.Name);
-                    table.Columns.Add(propertyInfo.Name, Nullable.GetUnderlyingType(propertyInfo.PropertyType) ?? propertyInfo.PropertyType);
-                }
+        //        foreach (var propertyInfo in props)
+        //        {
+        //            bulkCopy.ColumnMappings.Add(propertyInfo.Name, propertyInfo.Name);
+        //            table.Columns.Add(propertyInfo.Name, Nullable.GetUnderlyingType(propertyInfo.PropertyType) ?? propertyInfo.PropertyType);
+        //        }
 
-                var values = new object[props.Length];
-                foreach (var item in list)
-                {
-                    for (var i = 0; i < values.Length; i++)
-                    {
-                        values[i] = props[i].GetValue(item);
-                    }
+        //        var values = new object[props.Length];
+        //        foreach (var item in list)
+        //        {
+        //            for (var i = 0; i < values.Length; i++)
+        //            {
+        //                values[i] = props[i].GetValue(item);
+        //            }
 
-                    table.Rows.Add(values);
-                }
+        //            table.Rows.Add(values);
+        //        }
 
-                bulkCopy.WriteToServer(table);
-            }
-        }
+        //        bulkCopy.WriteToServer(table);
+        //    }
+        //}
 
         //更新实体时操作导航属性
         //用一个例子来说明在更新实体同时如何对导航属性进行操作吧。假设有两个类型
         //那如何在更新Customer的同时Add一个CustomerAddress并且Delete一个CustomerAddress呢?关键一点就是要让EntityFramework的Change Tracker知道有CustomerAddress的存在，只需对Customer增加一个Add操作就行了，代码如下
-        public void Modify(Customer entity, CustomerAddress address)
-        {
-            using (var context = new Context())
-            {
-                context.Customers.Add(entity);
+        //public void Modify(Customer entity, CustomerAddress address)
+        //{
+        //    using (var context = new testContext())
+        //    {
+        //        context.Customers.Add(entity);
 
-                //修改Customer
-                context.Entry(entity).State = EntityState.Modified;
+        //        //修改Customer
+        //        context.Entry(entity).State = EntityState.Modified;
 
-                //新增CustomerAddress
-                entity.CustomerAddresses.Add(address);
+        //        //新增CustomerAddress
+        //        entity.CustomerAddresses.Add(address);
 
-                //删除CustomerAddress
-                context.Entry(address).State = EntityState.Deleted;
-                context.SaveChanges();
-            }
+        //        //删除CustomerAddress
+        //        context.Entry(address).State = EntityState.Deleted;
+        //        context.SaveChanges();
+        //    }
 
-        }
+        //}
 
         //实现实体的部分更新
         //public void Modify<T>(T t1, T t2)where T: new()
@@ -144,6 +157,7 @@ namespace EF_Code_first
 
     public class Destination
     {
+     
         public int DestinationId { get; set; }
         public string Name { get; set; }
         public string Country { get; set; }
@@ -160,9 +174,9 @@ namespace EF_Code_first
         public bool IsResort { get; set; }
         public Destination Destination { get; set; }
     }
-    public class Context : DbContext
+    public class testContext : DbContext
     {
-        public Context() : base("name=test")
+        public testContext() :base("name=testContext")
         {
 
         }

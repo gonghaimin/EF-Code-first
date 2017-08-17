@@ -12,6 +12,7 @@ using System.Data.SqlClient;
 using System.Data;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Runtime.Remoting.Messaging;
 
 namespace EF_Code_first
 {
@@ -36,9 +37,14 @@ namespace EF_Code_first
             };
             using (var context = new testContext())
             {
+
+                //DbEntityEntry<Destination> tn = context.Entry<Destination>(destination);
+                //tn.State = EntityState.Added;
                 context.Destinations.Add(destination);
+              
                 context.SaveChanges();
                 Console.ReadKey();
+               
                 var aa = context.Destinations.Where(a => a.DestinationId == 1);
              
 
@@ -80,7 +86,21 @@ namespace EF_Code_first
             Console.WriteLine("OK");
 
         }
-
+        static string key= "DbContext-Single";
+        public static DbContext Instance
+        {
+            get
+            {
+                DbContext temp = CallContext.GetData(key) as DbContext;
+                if (temp == null)
+                {
+                    temp = new testContext();
+                    CallContext.SetData(key, temp);
+                }
+                return temp;
+            }
+            private set { }
+        }
         //使用SqlBulkCopy来批量插入数据，这样很大地提高性能
         //public static void BulkInsert<T>(SqlConnection conn, string tableName, IList<T> list)
         //{
@@ -153,7 +173,7 @@ namespace EF_Code_first
 
         //}
     }
-
+   
 
     public class Destination
     {

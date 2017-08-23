@@ -20,64 +20,36 @@ namespace EF_Code_first
     {
         static void Main(string[] args)
         {
-            using (var tt=new Model1())
-            {
-                MyEntity my = new EF_Code_first.MyEntity() { Name = "test" };
-                tt.MyEntities.Add(my);
-                //tt.SaveChanges();
-                var aaaaa = tt.MyEntities.ToList();
-                var aaaa1a = tt.MyEntities.ToList();
-            }
-            var d = DateTime.Now.Date.ToString("yyyyMM");
-            var destination = new Destination
-            {
-                Country = "Indonesia",
-                Description = "EcoTourism at its best in exquisite Bali",
-                Name = "Bali"
-            };
+
             using (var context = new testContext())
             {
-
-                //DbEntityEntry<Destination> tn = context.Entry<Destination>(destination);
-                //tn.State = EntityState.Added;
-                context.Destinations.Add(destination);
-              
-                context.SaveChanges();
-                Console.ReadKey();
-               
-                var aa = context.Destinations.Where(a => a.DestinationId == 1);
-             
-
+                context.Database.CreateIfNotExists();
                 ///使用EntityFramework.Extended插件
-                //更新
-                context.Destinations.Where(a => a.DestinationId > 1).Update(a => new Destination() { Name = "ghm" });
                 //删除
-                context.Destinations.Where(a => a.DestinationId == 1).Delete();
-
+                context.Students.Where(a => a.Id == 1).Delete();
+                
                 //分页
-                var q1 = aa.FutureCount();
-                var q2 = aa.Skip(10).Take(10).Future();
+                var q1 = context.Students.FutureCount();//sum值
+                var q2 = context.Students.Skip(10).Take(10).Future();
 
                 //一次查询
                 var data = q2.ToList();
                 var count = q1.Value;
 
                 context.SaveChanges();
-                //context.Destinations.AddOrUpdate
-
 
                 //ef删除操作，针对有主键的表
-                //自己创建一个对象，然后附加，然后删除
-                Destination de = new Destination() { DestinationId = 1 };
-                context.Destinations.Attach(de);
-                context.Destinations.Remove(de);
-                context.SaveChanges();
+                //Student stu = new Destination() { DestinationId = 1 };
+                //context.Destinations.Attach(de);
+                //context.Destinations.Remove(de);
+                //context.SaveChanges();
 
-                //自己创建对象，然后放入EF容器，然后删除。
-                Destination del = new Destination() { DestinationId = 1 };
-                DbEntityEntry<Destination> dest = context.Entry(del);
-                dest.State = EntityState.Deleted;
-
+                ////自己创建对象，然后放入EF容器，然后删除。
+                //Destination del = new Destination() { DestinationId = 1 };
+                //DbEntityEntry<Destination> dest = context.Entry(del);
+                //dest.State = EntityState.Deleted;
+                context.Students.AsNoTracking();
+                
                 context.SaveChanges();
 
                 ////如果实体类有变化，那么就重新生成一下数据库(DropCreateDatabaseIfModelChanges)
@@ -86,139 +58,48 @@ namespace EF_Code_first
             Console.WriteLine("OK");
 
         }
-        static string key= "DbContext-Single";
-        public static DbContext Instance
+      
+
+        public void Modify(@Class entity, Student stu)
         {
-            get
+            using (var context = DB.Instance)
             {
-                DbContext temp = CallContext.GetData(key) as DbContext;
-                if (temp == null)
-                {
-                    temp = new testContext();
-                    CallContext.SetData(key, temp);
-                }
-                return temp;
+                context.@Classs.Add(entity);
+
+                //修改Customer
+                context.Entry(entity).State = EntityState.Modified;
+
+                //新增CustomerAddress
+                entity.Stus.Add(stu);
+
+                //删除CustomerAddress
+                context.Entry(stu).State = EntityState.Deleted;
+                context.SaveChanges();
             }
-            private set { }
+
         }
-        //使用SqlBulkCopy来批量插入数据，这样很大地提高性能
-        //public static void BulkInsert<T>(SqlConnection conn, string tableName, IList<T> list)
-        //{
-        //    using (var bulkCopy = new SqlBulkCopy(conn))
-        //    {
-        //        bulkCopy.BatchSize = list.Count;
-        //        bulkCopy.DestinationTableName = tableName;
-
-        //        var table = new DataTable();
-        //        var props = TypeDescriptor.GetProperties(typeof(T), new Attribute[] { new DatabaseTableColumnAttribute() })
-        //            //Dirty hack to make sure we only have system data types 
-        //            //i.e. filter out the relationships/collections
-        //            .Cast<PropertyDescriptor>()
-        //            .Where(propertyInfo => propertyInfo.PropertyType.Namespace.Equals("System"))
-        //            .ToArray();
-
-        //        foreach (var propertyInfo in props)
-        //        {
-        //            bulkCopy.ColumnMappings.Add(propertyInfo.Name, propertyInfo.Name);
-        //            table.Columns.Add(propertyInfo.Name, Nullable.GetUnderlyingType(propertyInfo.PropertyType) ?? propertyInfo.PropertyType);
-        //        }
-
-        //        var values = new object[props.Length];
-        //        foreach (var item in list)
-        //        {
-        //            for (var i = 0; i < values.Length; i++)
-        //            {
-        //                values[i] = props[i].GetValue(item);
-        //            }
-
-        //            table.Rows.Add(values);
-        //        }
-
-        //        bulkCopy.WriteToServer(table);
-        //    }
-        //}
-
-        //更新实体时操作导航属性
-        //用一个例子来说明在更新实体同时如何对导航属性进行操作吧。假设有两个类型
-        //那如何在更新Customer的同时Add一个CustomerAddress并且Delete一个CustomerAddress呢?关键一点就是要让EntityFramework的Change Tracker知道有CustomerAddress的存在，只需对Customer增加一个Add操作就行了，代码如下
-        //public void Modify(Customer entity, CustomerAddress address)
-        //{
-        //    using (var context = new testContext())
-        //    {
-        //        context.Customers.Add(entity);
-
-        //        //修改Customer
-        //        context.Entry(entity).State = EntityState.Modified;
-
-        //        //新增CustomerAddress
-        //        entity.CustomerAddresses.Add(address);
-
-        //        //删除CustomerAddress
-        //        context.Entry(address).State = EntityState.Deleted;
-        //        context.SaveChanges();
-        //    }
-
-        //}
 
         //实现实体的部分更新
-        //public void Modify<T>(T t1, T t2)where T: new()
-        //{
-        //    using (var context = new Context())
-        //    {
-        //        if (context.Entry(t1).State != EntityState.Unchanged)
-        //            context.Entry(t1).State = EntityState.Unchanged;
-        //        context.Entry(t1).CurrentValues.SetValues(t2);
-        //        context.SaveChanges();
-        //    }
-
-        //}
-    }
-   
-
-    public class Destination
-    {
-     
-        public int DestinationId { get; set; }
-        public string Name { get; set; }
-        public string Country { get; set; }
-        public string Description { get; set; }
-        public byte[] Photo { get; set; }
-        public List<Lodging> Lodgings { get; set; }
-    }
-
-    public class Lodging
-    {
-        public int LodgingId { get; set; }
-        public string Name { get; set; }
-        public string Owner { get; set; }
-        public bool IsResort { get; set; }
-        public Destination Destination { get; set; }
-    }
-    public class testContext : DbContext
-    {
-        public testContext() :base("name=testContext")
+        public void Modify<T>(T t1, T t2) where T :class, new()
         {
+            using (var context = DB.Instance)
+            {
+                if (context.Entry(t1).State != EntityState.Unchanged)
+                    context.Entry(t1).State = EntityState.Unchanged;
+                context.Entry(t1).CurrentValues.SetValues(t2);
+                context.SaveChanges();
+            }
 
         }
-        public DbSet<Destination> Destinations { get; set; }
-        public DbSet<Lodging> Lodgings { get; set; }
-        public DbSet<CustomerAddress> CustomerAddresss { get; set; }
-        public DbSet<Customer> Customers { get; set; }
+
+        //添加实体方法Entity Framwork中Dbset<T>.Add()与EntityState.Added区别:
+        //使用Dbset<T>.Add(t)时，如果t对象中有一个导航属性，且它不为空，那么EF总会在导航属性表中新建一个对应的数据。而使用EntityState.Added方法时不会出现上述的问题
     }
 
-    public class Customer
-    {
-        public string ID { get; set; }
-        public string Name { get; set; }
-        public IList<CustomerAddress> CustomerAddresses { get; set; }
-    }
 
-    public class CustomerAddress
-    {
-        public string City { get; set; }
-        public string ZipCode { get; set; }
-        public string CustomerId { get; set; }
-        public Customer Customer { get; set; }
-    }
+
+
+
+
 
 }

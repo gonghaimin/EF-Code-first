@@ -23,4 +23,3 @@ H:\GHM\EF-Code-first\EF-Code first\bin\Debug\EntityFramework.xml
 H:\GHM\EF-Code-first\EF-Code first\bin\Debug\EntityFramework.Extended.xml
 H:\GHM\EF-Code-first\EF-Code first\bin\Debug\EntityFramework.SqlServer.xml
 H:\GHM\EF-Code-first\EF-Code first\bin\Debug\zh-Hans\EntityFramework.resources.dll
-H:\GHM\EF-Code-first\EF-Code first\obj\Debug\EF-Code first.csprojResolveAssemblyReference.cache

@@ -21,13 +21,39 @@ namespace EF_Code_first
         static void Main(string[] args)
         {
 
-            using (var context = new testContext())
+            using (var context = DB.Instance)
             {
                 context.Database.CreateIfNotExists();
+                ////如果实体类有变化，那么就重新生成一下数据库(DropCreateDatabaseIfModelChanges)
+                Database.SetInitializer(new DropCreateDatabaseIfModelChanges<testContext>());
+                Student stu = new Student() { Age=5};
+                context.Entry<Student>(stu).State = EntityState.Added;
+                context.SaveChanges();
+
+                stu = new Student() { Age = 5 };
+                context.Students.Add(stu);
+                context.SaveChanges();
+
+                var student = context.Students.First(s=>s.Id==1);
+                student.UserName = "ghm";
+                context.SaveChanges();
+
+                student = new Student() { Id = 1 };
+                context.Students.Attach(student);
+                student.UserName = "ghm";
+                context.Entry<Student>(student).State = EntityState.Modified;
+                context.SaveChanges();
+
+                student = new Student() { Id = 1 };
+                student.UserName = "ghm";
+                context.Entry<Student>(student).Property("UserName").IsModified = true;
+                context.SaveChanges();
+
+                
                 ///使用EntityFramework.Extended插件
                 //删除
                 context.Students.Where(a => a.Id == 1).Delete();
-                
+               
                 //分页
                 var q1 = context.Students.FutureCount();//sum值
                 var q2 = context.Students.Skip(10).Take(10).Future();
@@ -39,10 +65,20 @@ namespace EF_Code_first
                 context.SaveChanges();
 
                 //ef删除操作，针对有主键的表
-                //Student stu = new Destination() { DestinationId = 1 };
-                //context.Destinations.Attach(de);
-                //context.Destinations.Remove(de);
-                //context.SaveChanges();
+                Student stud = new Student() { Id = 1 };
+                context.Students.Attach(stud);
+                context.Students.Remove(stud);
+                context.SaveChanges();
+
+                student = context.Students.First(s => s.Id == 1);
+                context.Students.Remove(student);
+                context.SaveChanges();
+
+                student = new Student() { Id = 1 };
+                context.Entry<Student>(student).State = EntityState.Deleted;
+                context.SaveChanges();
+
+            
 
                 ////自己创建对象，然后放入EF容器，然后删除。
                 //Destination del = new Destination() { DestinationId = 1 };
@@ -52,8 +88,7 @@ namespace EF_Code_first
                 
                 context.SaveChanges();
 
-                ////如果实体类有变化，那么就重新生成一下数据库(DropCreateDatabaseIfModelChanges)
-                Database.SetInitializer(new DropCreateDatabaseIfModelChanges<testContext>());
+             
             }
             Console.WriteLine("OK");
 

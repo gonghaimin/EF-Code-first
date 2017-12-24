@@ -13,6 +13,7 @@ using System.Data;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.Remoting.Messaging;
+using System.Data.Entity.Core.Objects;
 
 namespace EF_Code_first
 {
@@ -23,40 +24,82 @@ namespace EF_Code_first
 
             using (var context = DB.Instance)
             {
+                
+                //禁止自动检测跟踪功能。
+                context.Configuration.AutoDetectChangesEnabled = false;
+                //context.Database.Delete();
                 context.Database.CreateIfNotExists();
                 ////如果实体类有变化，那么就重新生成一下数据库(DropCreateDatabaseIfModelChanges)
                 Database.SetInitializer(new DropCreateDatabaseIfModelChanges<testContext>());
-                Student stu = new Student() { Age=5};
-                context.Entry<Student>(stu).State = EntityState.Added;
-                context.SaveChanges();
 
-                stu = new Student() { Age = 5 };
-                context.Students.Add(stu);
-                context.SaveChanges();
+                //新增实体对象，并加入到context上下文容器中，设置其跟踪状态为Added
+                User user = new EF_Code_first.User() { Phone = 123456, UserName = "ghm" };
+                //context.Entry<User>(user).State = EntityState.Added;
+                //context.SaveChanges();
+                //新增实体对象，使用DbSet Add()方法
+                //user = new User() { Phone = 123456, UserName = "wu" };
+                //context.Users.Add(user);
+                //context.SaveChanges();
 
-                var student = context.Students.First(s=>s.Id==1);
-                student.UserName = "ghm";
-                context.SaveChanges();
-
-                student = new Student() { Id = 1 };
-                context.Students.Attach(student);
-                student.UserName = "ghm";
-                context.Entry<Student>(student).State = EntityState.Modified;
-                context.SaveChanges();
-
-                student = new Student() { Id = 1 };
-                student.UserName = "ghm";
-                context.Entry<Student>(student).Property("UserName").IsModified = true;
-                context.SaveChanges();
-
+                user = context.Users.Find(2);
+                //会更新实体所有的字段，如果不设置则为null
+                user = new User() { UserId = 2 };
                 
+                user.UserName = "a";
+                Exists<User>(user);
+                context.Entry<User>(user).State = EntityState.Modified;
+                context.SaveChanges();
+
+                DbChangeTracker dt = context.ChangeTracker;
+                var users = dt.Entries<User>();
+
+                user=context.Users.FirstOrDefault(o=>o.UserName=="a");
+                user.UserName = "ghm";
+                context.SaveChanges();
+                //更新实体对象，使用DbSet查找指定的对象，如果上下文中存在，则直接返回，否则到数据库中查找并返回后、加入到上下文跟踪对象中
+                user.UserName = "gonghaim";
+                //context.SaveChanges();
+                var user2 = context.Users.Find(2);
+                user = new User() { UserId = 1 };
+                if (Exists<User>(user))
+                {
+
+                }
+                context.Users.Attach(user);
+                ///指定更新的字段
+                user.UserName = "fengpei";
+                context.Entry<User>(user).Property("UserName").IsModified = true;
+                context.SaveChanges();
+                //Exists<User>(user);
+                user = new User() { UserId = 1 };
+                user.UserName = "fengpei444";
+                
+                var entry=context.Entry<User>(user);
+                entry.State = EntityState.Unchanged;
+                entry.Property("UserName").IsModified = true;
+                context.SaveChanges();
+
+                user = new User() { UserId = 1 };
+                Exists<User>(user);
+                context.Users.Attach(user);
+                context.Users.Remove(user);
+                context.SaveChanges();
+
+                user = context.Users.Find(1);
+                context.Users.Remove(user);
+                context.SaveChanges();
+
+                user = new User() { UserId = 1 };
+                context.Entry(user).State = EntityState.Deleted;
+                context.SaveChanges();
                 ///使用EntityFramework.Extended插件
                 //删除
                 context.Students.Where(a => a.Id == 1).Delete();
-               
+                context.SaveChanges();
+
                 //分页
-                var q1 = context.Students.FutureCount();//sum值
-                var q2 = context.Students.Skip(10).Take(10).Future();
+                var q1 = context.Users.FutureCount();//sum值
+                var q2 = context.Users.Skip(10).Take(10).Future();
 
                 //一次查询
                 var data = q2.ToList();
@@ -70,12 +113,12 @@ namespace EF_Code_first
                 context.Students.Remove(stud);
                 context.SaveChanges();
 
-                student = context.Students.First(s => s.Id == 1);
-                context.Students.Remove(student);
+                user = context.Users.First(s => s.UserId == 1);
+                context.Users.Remove(user);
                 context.SaveChanges();
 
-                student = new Student() { Id = 1 };
-                context.Entry<Student>(student).State = EntityState.Deleted;
+                user = new User() { UserId = 1 };
+                context.Entry<User>(user).State = EntityState.Deleted;
                 context.SaveChanges();
 
             
@@ -93,8 +136,20 @@ namespace EF_Code_first
             Console.WriteLine("OK");
 
         }
-      
-
+        private static  bool Exists<TEntity>(TEntity entity) where TEntity : class
+        {
+            ObjectContext oc = ((IObjectContextAdapter)DB.Instance).ObjectContext;
+            var name = oc.CreateObjectSet<TEntity>().EntitySet.Name;
+            var entityKey = oc.CreateEntityKey(name, entity);
+            Object foundEntity;
+            var exists = oc.TryGetObjectByKey(entityKey, out foundEntity);
+            if (exists)
+            {
+                oc.Detach(foundEntity);
+            }
+            return exists;
+        }
+     
         public void Modify(@Class entity, Student stu)
         {
             using (var context = DB.Instance)

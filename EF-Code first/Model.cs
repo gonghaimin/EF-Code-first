@@ -61,4 +61,11 @@ namespace EF_Code_first
         public byte[] Photo { get; set; }
         public Person PhotoOf { get; set; }
     }
+    public class User
+    {
+        [Key]
+        public int UserId { get; set; }
+        public string UserName { get; set; }
+        public int Phone { get; set; }
+    }
 }

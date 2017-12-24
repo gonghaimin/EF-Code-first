@@ -38,6 +38,7 @@ namespace EF_Code_first
         public DbSet<Student> Students { get; set; }
         public DbSet<Person> Persons { get; set; }
         public DbSet<PersonPhoto> PersonPhotos { get; set; }
+        public DbSet<User> Users { get; set; }
     }
 
     /// <summary>

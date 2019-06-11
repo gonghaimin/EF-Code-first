@@ -48,8 +48,9 @@ namespace EF_Code_first
                 user.UserName = "a";
                 Exists<User>(user);
                 context.Entry<User>(user).State = EntityState.Modified;
+                var en = context.Entry<User>(user);
                 context.SaveChanges();
-
+                user = context.Users.Find(2);
                 DbChangeTracker dt = context.ChangeTracker;
                 var users = dt.Entries<User>();
 
@@ -70,6 +71,7 @@ namespace EF_Code_first
                 user.UserName = "fengpei";
                 context.Entry<User>(user).Property("UserName").IsModified = true;
                 context.SaveChanges();
+
                 //Exists<User>(user);
                 user = new User() { UserId = 1 };
                 user.UserName = "fengpei444";

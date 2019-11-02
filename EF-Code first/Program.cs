@@ -40,11 +40,12 @@ namespace EF_Code_first
                 //user = new User() { Phone = 123456, UserName = "wu" };
                 //context.Users.Add(user);
                 //context.SaveChanges();
-
+                ObjectQuery<User> customers = context.Users.Where(x => x.UserId > 0).OrderBy(x => x.UserName).ToObjectQuery();
+                Console.WriteLine(customers.ToTraceString());//输出查询sql
                 user = context.Users.Find(2);
                 //会更新实体所有的字段，如果不设置则为null
                 user = new User() { UserId = 2 };
-                
+              
                 user.UserName = "a";
                 Exists<User>(user);
                 context.Entry<User>(user).State = EntityState.Modified;
